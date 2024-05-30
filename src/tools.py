@@ -1,4 +1,5 @@
 """Functions used in the forward pass and helpers."""
+import numpy as np
 import torch
 from torch import Tensor
 from functorch import vmap
@@ -16,26 +17,45 @@ def logistic(Y: Tensor) -> Tensor:
     return 1 / (1 + torch.exp(-Y))
 
 
-def feature_accuracy(Y, pi):
-    """Compute the feature accuracy of a given prediction"""
-    Y_argmax = Y.argmax(1)
-    pi_argmax = pi.argmax(1)
-    assert len(Y_argmax) == len(Y)
-    acc = torch.sum(torch.tensor(Y_argmax == pi_argmax)) / len(Y_argmax)
-    return acc
-
-
-def rmse(Yhat, Y):
-    """Compute root mean square error"""
-    return torch.sqrt(torch.mean((Yhat - Y) ** 2))
+def calculate_permutation(u_reference: np.ndarray, u_permut: np.ndarray) -> np.ndarray:
+    """Permute membership matrices to account for label switching"""
+    N, RANK = u_reference.shape
+    M = np.dot(np.transpose(u_permut), u_reference) / N
+    rows = np.zeros(RANK)
+    columns = np.zeros(RANK)
+    P = np.zeros((RANK, RANK))  # permutation matrix
+    for t in range(RANK):
+        # Find the max element in the remaining submatrix,
+        # the one with rows and columns removed from previous iterations
+        max_entry = 0.0
+        c_index = 0
+        r_index = 0
+        for i in range(RANK):
+            if columns[i] == 0:
+                for j in range(RANK):
+                    if rows[j] == 0:
+                        if M[j, i] > max_entry:
+                            max_entry = M[j, i]
+                            c_index = i
+                            r_index = j
+        if max_entry > 0:
+            P[r_index, c_index] = 1
+            columns[c_index] = 1
+            rows[r_index] = 1
+    if (np.sum(P, axis=1) == 0).any():
+        row = np.where(np.sum(P, axis=1) == 0)[0]
+        if (np.sum(P, axis=0) == 0).any():
+            col = np.where(np.sum(P, axis=0) == 0)[0]
+            P[row, col] = 1
+    return P
 
 
 # Functions used in the forward pass of the adjacency tensor
 def forward_gaussian_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
+    """Compute expected values for Gaussian layers"""
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
 
-    # equivalent to U @ (W @ V.T)
     def matmul_U(X):
         return torch.matmul(U, X)
 
@@ -45,6 +65,7 @@ def forward_gaussian_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 
 
 def forward_bernoulli_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
+    """Compute expected values for Bernoulli layers"""
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     W = logistic(W)
@@ -58,6 +79,7 @@ def forward_bernoulli_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 
 
 def forward_poisson_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
+    """Compute expected values for Poisson layers"""
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     W = torch.exp(W)
@@ -72,6 +94,7 @@ def forward_poisson_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 
 # Functions used in the forward pass of the design matrix
 def forward_categorical_covariate(U, V, H):
+    """Compute expected values for categorical covariates"""
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     H = row_wise_softmax(H)
@@ -82,6 +105,7 @@ def forward_categorical_covariate(U, V, H):
 
 
 def forward_gaussian_covariate(U, V, H):
+    """Compute expected values for Gaussian covariates"""
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
 
@@ -91,6 +115,7 @@ def forward_gaussian_covariate(U, V, H):
 
 
 def forward_poisson_covariate(U, V, H):
+    """Compute expected values for Poisson covariates"""
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     H = torch.exp(H)

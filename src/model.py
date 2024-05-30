@@ -9,7 +9,7 @@ import numpy as np
 
 
 class PIHAM(nn.Module):
-    """Implements the PIHAM probabilistic generative model from
+    """Implementation of the PIHAM probabilistic generative model from
 
     [1] Flexible inference in heterogeneous and attributed multilayer networks,
         Contisciani M., Hobbhahn M., Power E.A., Hennig P., and De Bacco C. (2024)
@@ -119,7 +119,7 @@ class PIHAM(nn.Module):
             Hgaussian_INIT.clone().detach(), requires_grad=True
         ).to(self.device)
 
-    def get_UVWBetaPsiMu(self) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
+    def get_UVWH(self) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         return (
             self.U,
             self.V,
@@ -443,26 +443,26 @@ class PIHAM(nn.Module):
             2 * self.N * self.K: 2 * self.N * self.K + self.L * self.K * self.K
             ].reshape(self.L, self.K, self.K)
         Hcategorical = Theta[
-               2 * self.N * self.K
-               + self.L * self.K * self.K: 2 * self.N * self.K
-                                           + self.L * self.K * self.K
-                                           + self.K * self.Z_categorical
-               ].reshape(self.K, self.Z_categorical)
+                       2 * self.N * self.K
+                       + self.L * self.K * self.K: 2 * self.N * self.K
+                                                   + self.L * self.K * self.K
+                                                   + self.K * self.Z_categorical
+                       ].reshape(self.K, self.Z_categorical)
         Hpoisson = Theta[
-              2 * self.N * self.K
-              + self.L * self.K * self.K
-              + self.K * self.Z_categorical: 2 * self.N * self.K
-                                             + self.L * self.K * self.K
-                                             + self.K * (self.Z_categorical + self.P_poisson)
-              ].reshape(self.K, self.P_poisson)
+                   2 * self.N * self.K
+                   + self.L * self.K * self.K
+                   + self.K * self.Z_categorical: 2 * self.N * self.K
+                                                  + self.L * self.K * self.K
+                                                  + self.K * (self.Z_categorical + self.P_poisson)
+                   ].reshape(self.K, self.P_poisson)
         Hgaussian = Theta[
-             2 * self.N * self.K
-             + self.L * self.K * self.K
-             + self.K * (self.Z_categorical + self.P_poisson): 2 * self.N * self.K
-                                                               + self.L * self.K * self.K
-                                                               + self.K * (
-                                                                           self.Z_categorical + self.P_poisson + self.P_gaussian)
-             ].reshape(self.K, self.P_gaussian)
+                    2 * self.N * self.K
+                    + self.L * self.K * self.K
+                    + self.K * (self.Z_categorical + self.P_poisson): 2 * self.N * self.K
+                                                                      + self.L * self.K * self.K
+                                                                      + self.K * (
+                                                                              self.Z_categorical + self.P_poisson + self.P_gaussian)
+                    ].reshape(self.K, self.P_gaussian)
 
         ## forward pass
         W_bernoulli = W[0].reshape(1, self.K, self.K)
@@ -551,3 +551,52 @@ class PIHAM(nn.Module):
             return self.Covariance.diag()
         else:
             return self.Covariance
+
+
+def assign_priors(N, L, K, Z_categorical, P_poisson, P_gaussian, configuration):
+    """Set parameters mu and sigma of prior distributions"""
+
+    device = configuration["device"]
+
+    # Means
+    U_mu_prior = torch.zeros((N, K)).to(device) + configuration["U_mu"]
+    V_mu_prior = torch.zeros((N, K)).to(device) + configuration["V_mu"]
+    W_mu_prior = torch.zeros((L, K, K)).to(device) + configuration["W_mu"]
+    Hcategorical_mu_prior = (
+            torch.zeros((K, Z_categorical)).to(device) + configuration["Hcategorical_mu"]
+    )
+    Hpoisson_mu_prior = (
+            torch.zeros((K, P_poisson)).to(device) + configuration["Hpoisson_mu"]
+    )
+    Hgaussian_mu_prior = (
+            torch.zeros((K, P_gaussian)).to(device) + configuration["Hgaussian_mu"]
+    )
+
+    # Standard deviations
+    U_std_prior = torch.ones((N, K)).to(device) * configuration["U_std"]
+    V_std_prior = torch.ones((N, K)).to(device) * configuration["V_std"]
+    W_std_prior = torch.ones((L, K, K)).to(device) * configuration["W_std"]
+    Hcategorical_std_prior = (
+            torch.ones((K, Z_categorical)).to(device) * configuration["Hcategorical_std"]
+    )
+    Hpoisson_std_prior = (
+            torch.ones((K, P_poisson)).to(device) * configuration["Hpoisson_std"]
+    )
+    Hgaussian_std_prior = (
+            torch.ones((K, P_gaussian)).to(device) * configuration["Hgaussian_std"]
+    )
+
+    return (
+        U_mu_prior,
+        V_mu_prior,
+        W_mu_prior,
+        Hcategorical_mu_prior,
+        Hpoisson_mu_prior,
+        Hgaussian_mu_prior,
+        U_std_prior,
+        V_std_prior,
+        W_std_prior,
+        Hcategorical_std_prior,
+        Hpoisson_std_prior,
+        Hgaussian_std_prior,
+    )

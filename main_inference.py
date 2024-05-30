@@ -4,11 +4,10 @@ import yaml
 import numpy as np
 import torch
 from argparse import ArgumentParser
-from src.model import PIHAM
+from src.model import PIHAM, assign_priors
 
 
 def main():
-
     p = ArgumentParser()
     p.add_argument(
         "-f", "--in_folder", type=str, default="data/input/"
@@ -131,56 +130,7 @@ def main():
     )
 
     toc = time.time()
-    print(f"\n ---- Time elapsed: {np.round(toc-tic, 4)} seconds ----")
-
-
-def assign_priors(N, L, K, Z_categorical, P_poisson, P_gaussian, configuration):
-    """Set parameters mu and sigma of prior distributions"""
-
-    device = configuration["device"]
-
-    # Means
-    U_mu_prior = torch.zeros((N, K)).to(device) + configuration["U_mu"]
-    V_mu_prior = torch.zeros((N, K)).to(device) + configuration["V_mu"]
-    W_mu_prior = torch.zeros((L, K, K)).to(device) + configuration["W_mu"]
-    Hcategorical_mu_prior = (
-        torch.zeros((K, Z_categorical)).to(device) + configuration["Hcategorical_mu"]
-    )
-    Hpoisson_mu_prior = (
-        torch.zeros((K, P_poisson)).to(device) + configuration["Hpoisson_mu"]
-    )
-    Hgaussian_mu_prior = (
-        torch.zeros((K, P_gaussian)).to(device) + configuration["Hgaussian_mu"]
-    )
-
-    # Standard deviations
-    U_std_prior = torch.ones((N, K)).to(device) * configuration["U_std"]
-    V_std_prior = torch.ones((N, K)).to(device) * configuration["V_std"]
-    W_std_prior = torch.ones((L, K, K)).to(device) * configuration["W_std"]
-    Hcategorical_std_prior = (
-        torch.ones((K, Z_categorical)).to(device) * configuration["Hcategorical_std"]
-    )
-    Hpoisson_std_prior = (
-        torch.ones((K, P_poisson)).to(device) * configuration["Hpoisson_std"]
-    )
-    Hgaussian_std_prior = (
-        torch.ones((K, P_gaussian)).to(device) * configuration["Hgaussian_std"]
-    )
-
-    return (
-        U_mu_prior,
-        V_mu_prior,
-        W_mu_prior,
-        Hcategorical_mu_prior,
-        Hpoisson_mu_prior,
-        Hgaussian_mu_prior,
-        U_std_prior,
-        V_std_prior,
-        W_std_prior,
-        Hcategorical_std_prior,
-        Hpoisson_std_prior,
-        Hgaussian_std_prior,
-    )
+    print(f"\n ---- Time elapsed: {np.round(toc - tic, 4)} seconds ----")
 
 
 if __name__ == "__main__":
