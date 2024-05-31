@@ -1,4 +1,3 @@
-from src import tools
 import torch
 from typing import List, Tuple
 from torch import Tensor
@@ -6,6 +5,7 @@ from torch import optim
 from torch import nn
 from torch.autograd.functional import hessian
 import numpy as np
+from src import tools
 
 
 class PIHAM(nn.Module):
@@ -20,6 +20,10 @@ class PIHAM(nn.Module):
     and node attributes. In addition, the inference of the parameters is performed within
     a Bayesian framework, where both prior and posterior distributions are
     modeled with Gaussian distributions.
+
+    In this implementation, we analyze networks with L = 3 heterogeneous layers (one with binary interactions,
+    the second with nonnegative discrete weights, and the third with real values) and three covariates (one
+    categorical with Z = 4 categories, one with nonnegative discrete values, and the last with real values).
     """
 
     def __init__(
