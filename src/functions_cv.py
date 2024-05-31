@@ -6,7 +6,7 @@ from src.model import PIHAM, assign_priors
 
 
 def shuffle_indicesA(N, L, rng):
-    """Shuffle indices of adjacency tensor"""
+    """Shuffle indices of adjacency tensor."""
     n_samples = int(N * N)
     idxG = [np.arange(n_samples) for _ in range(L)]
     for l in range(L):
@@ -15,7 +15,7 @@ def shuffle_indicesA(N, L, rng):
 
 
 def shuffle_indicesX(N, rng):
-    """Shuffle row indices of design matrix"""
+    """Shuffle row indices of design matrix."""
     idxX = np.arange(N)
     rng.shuffle(idxX)
     return idxX
@@ -24,7 +24,7 @@ def shuffle_indicesX(N, rng):
 def extract_masks(
     N, L, idxA, idxX, cv_type, NFold, fold, rng, out_mask, output_folder, data_file
 ):
-    """Extract masks to use during the cross-validation routine to hide entries of A and X"""
+    """Extract masks to use during the cross-validation routine to hide entries of A and X."""
     if cv_type == "kfold":
         assert L == len(idxA)
         maskA = np.zeros((L, N, N), dtype=bool)
@@ -58,7 +58,7 @@ def extract_masks(
 
 
 def fit_model(N, L, K, A, X_categorical, X_poisson, X_gaussian, **configuration):
-    """Fit PIHAM model on the training set"""
+    """Fit PIHAM model on the training set."""
     Z_categorical = X_categorical.size(
         1
     )  # number of categories for the categorical attribute
@@ -125,7 +125,7 @@ def fit_model(N, L, K, A, X_categorical, X_poisson, X_gaussian, **configuration)
 
 
 def AUC(Y, Yhat, mask=None):
-    """Compute the AUC score"""
+    """Compute the AUC score."""
     Y = (Y > 0).astype("int")
     if mask is None:
         fpr, tpr, thresholds = metrics.roc_curve(Y.flatten(), Yhat.flatten())
@@ -135,7 +135,7 @@ def AUC(Y, Yhat, mask=None):
 
 
 def accuracy(Y, Yhat, mask=None):
-    """Compute the accuracy score"""
+    """Compute the accuracy score."""
     if mask is None:
         true_label = np.argmax(Y, axis=1)
         pred_label = np.argmax(Yhat, axis=1)
@@ -147,7 +147,7 @@ def accuracy(Y, Yhat, mask=None):
 
 
 def RMSE(Y, Yhat, mask=None):
-    """Compute the root mean square error"""
+    """Compute the root mean square error."""
     if mask is None:
         Y = Y.flatten()
         Yhat = Yhat.flatten()
@@ -167,7 +167,7 @@ def RMSE(Y, Yhat, mask=None):
 
 
 def compute_mae(Y, Yhat, mask=None):
-    """Compute the mean absolute error"""
+    """Compute the mean absolute error."""
     if mask is None:
         Y = Y.flatten()
         Yhat = Yhat.flatten()

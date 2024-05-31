@@ -59,6 +59,10 @@ def main():
     """
     Import data
     """
+    # We analyze a heterogeneous and attributed multilayer network with L = 3 layers: one with binary interactions,
+    # the second with nonnegative discrete weights, and the third with real values.
+    # Additionally, each node is associated with three covariates: one categorical with Z = 4 categories,
+    # one with nonnegative discrete values, and the last with real values.
     data = torch.load(args.in_folder + args.data_file)
     A = data["A"].to(device)  # adjacency tensor
     X_categorical = data["X_categorical"].to(device)  # categorical covariates
