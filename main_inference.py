@@ -15,7 +15,7 @@ def main():
     p.add_argument(
         "-d", "--data_file", type=str, default="synthetic_data.pt"
     )  # name of the data file
-    p.add_argument("-K", "--K", type=int, default=5)  # number of communities
+    p.add_argument("-K", "--K", type=int, default=3)  # number of communities
     args = p.parse_args()
 
     # Folder to store the results
@@ -74,7 +74,7 @@ def main():
         Hcategorical_std_prior,
         Hpoisson_std_prior,
         Hgaussian_std_prior,
-    ) = assign_priors(N, L, K, Z_categorical, P_poisson, P_gaussian, configuration)
+    ) = assign_priors(K, N, L, Z_categorical, P_poisson, P_gaussian, configuration)
 
     # Initialize model
     model = PIHAM(
@@ -130,7 +130,7 @@ def main():
     # Save results
     model.save_results(
         folder_name=output_folder,
-        file_name=f"_{args.data_file.replace('.pt', '')}_K{K}",
+        file_name=f"_{args.data_file.replace('.pt', '')}_K{K}"
     )
 
     toc = time.time()

@@ -8,17 +8,20 @@ from functorch import vmap
 # Helpers
 def row_wise_softmax(Y: Tensor) -> Tensor:
     """Compute the softmax function for every row of a 2D Tensor."""
+
     exp_Y = torch.exp(Y)
     return exp_Y / exp_Y.sum(1).reshape(-1, 1)
 
 
 def logistic(Y: Tensor) -> Tensor:
     """Compute the logistic function for every entry of a Tensor."""
+
     return 1 / (1 + torch.exp(-Y))
 
 
 def calculate_permutation(u_reference: np.ndarray, u_permut: np.ndarray) -> np.ndarray:
     """Permute membership matrices to account for label switching."""
+
     N, RANK = u_reference.shape
     M = np.dot(np.transpose(u_permut), u_reference) / N
     rows = np.zeros(RANK)
@@ -53,6 +56,7 @@ def calculate_permutation(u_reference: np.ndarray, u_permut: np.ndarray) -> np.n
 # Functions used in the forward pass of the adjacency tensor
 def forward_gaussian_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
     """Compute expected values for Gaussian layers."""
+
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
 
@@ -66,6 +70,7 @@ def forward_gaussian_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 
 def forward_bernoulli_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
     """Compute expected values for Bernoulli layers."""
+
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     W = logistic(W)
@@ -80,6 +85,7 @@ def forward_bernoulli_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 
 def forward_poisson_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
     """Compute expected values for Poisson layers."""
+
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     W = torch.exp(W)
@@ -95,6 +101,7 @@ def forward_poisson_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 # Functions used in the forward pass of the design matrix
 def forward_categorical_covariate(U, V, H):
     """Compute expected values for categorical covariates."""
+
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     H = row_wise_softmax(H)
@@ -106,6 +113,7 @@ def forward_categorical_covariate(U, V, H):
 
 def forward_gaussian_covariate(U, V, H):
     """Compute expected values for Gaussian covariates."""
+
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
 
@@ -116,6 +124,7 @@ def forward_gaussian_covariate(U, V, H):
 
 def forward_poisson_covariate(U, V, H):
     """Compute expected values for Poisson covariates."""
+
     U = row_wise_softmax(U)
     V = row_wise_softmax(V)
     H = torch.exp(H)

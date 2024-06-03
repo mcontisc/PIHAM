@@ -18,7 +18,7 @@ def main():
     p.add_argument(
         "-d", "--data_file", type=str, default="synthetic_data.pt"
     )  # name of the data file
-    p.add_argument("-K", "--K", type=int, default=5)  # number of communities
+    p.add_argument("-K", "--K", type=int, default=3)  # number of communities
     p.add_argument(
         "-F", "--NFold", type=int, default=5
     )  # number of folds to perform cv
@@ -155,9 +155,9 @@ def main():
 
         # Fit model on the training set
         U, V, W, Hcategorical, Hpoisson, Hgaussian, algo_obj = functions_cv.fit_model(
+            K,
             N,
             L,
-            K,
             A_train,
             X_categorical_train,
             X_poisson_train,
@@ -204,12 +204,12 @@ def main():
             mask=maskG[0].reshape(1, N, N),
         )
         # A Poisson
-        prediction_results[6] = functions_cv.compute_mae(
+        prediction_results[6] = functions_cv.MAE(
             A.detach().cpu().numpy()[1].reshape(1, N, N),
             Lambda_poisson.detach().cpu().numpy().reshape(1, N, N),
             mask=np.logical_not(maskG)[1].reshape(1, N, N),
         )
-        prediction_results[7] = functions_cv.compute_mae(
+        prediction_results[7] = functions_cv.MAE(
             A.detach().cpu().numpy()[1].reshape(1, N, N),
             Lambda_poisson.detach().cpu().numpy().reshape(1, N, N),
             mask=maskG[1].reshape(1, N, N),
@@ -229,7 +229,7 @@ def main():
         M_poisson_mean_train = (
             (Lambda_poisson[0][np.logical_not(maskG)[1]]).mean().detach().cpu().numpy()
         )
-        prediction_results[5] = functions_cv.compute_mae(
+        prediction_results[5] = functions_cv.MAE(
             A.detach().cpu().numpy()[1][maskG[1]],
             np.tile(M_poisson_mean_train, A.detach().cpu().numpy()[1][maskG[1]].shape),
         )
@@ -259,12 +259,12 @@ def main():
         )
         prediction_results[12] = metrics.accuracy_score(true_label, mrf_label)
         # X Poisson
-        prediction_results[16] = functions_cv.compute_mae(
+        prediction_results[16] = functions_cv.MAE(
             X_poisson.detach().cpu().numpy(),
             pi_poisson.detach().cpu().numpy(),
             mask=np.logical_not(maskX),
         )
-        prediction_results[17] = functions_cv.compute_mae(
+        prediction_results[17] = functions_cv.MAE(
             X_poisson.detach().cpu().numpy(),
             pi_poisson.detach().cpu().numpy(),
             mask=maskX,
@@ -284,7 +284,7 @@ def main():
         X_poisson_mean_train = (
             (X_poisson[np.logical_not(maskX)]).mean(axis=0).detach().cpu().numpy()
         )
-        prediction_results[15] = functions_cv.compute_mae(
+        prediction_results[15] = functions_cv.MAE(
             X_poisson.detach().cpu().numpy(),
             np.tile(X_poisson_mean_train, (X_poisson.shape[0], 1)),
             mask=maskX,

@@ -78,6 +78,7 @@ class PIHAM(nn.Module):
         P_gaussian: Number of Gaussian attributes.
         configuration: Dictionary containing the configuration of the model.
         """
+
         super().__init__()
         self.U_mu_prior = U_mu_prior
         self.U_std_prior = U_std_prior
@@ -91,8 +92,8 @@ class PIHAM(nn.Module):
         self.Hpoisson_std_prior = Hpoisson_std_prior
         self.Hgaussian_mu_prior = Hgaussian_mu_prior
         self.Hgaussian_std_prior = Hgaussian_std_prior
-        self.N = N
         self.K = K
+        self.N = N
         self.L = L
         self.Z_categorical = Z_categorical
         self.P_poisson = P_poisson
@@ -102,6 +103,7 @@ class PIHAM(nn.Module):
 
     def initialize(self, seed) -> None:
         """Initialize latent variables."""
+
         torch.manual_seed(seed)
         U_INIT = torch.normal(
             self.configuration["U_init_mu"] * torch.ones((self.N, self.K)),
@@ -155,6 +157,7 @@ class PIHAM(nn.Module):
 
     def get_UVWH(self) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         """Get latent variables."""
+
         return (
             self.U,
             self.V,
@@ -166,6 +169,7 @@ class PIHAM(nn.Module):
 
     def forward(self) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         """Forward pass to compute the expected values of the likelihoods."""
+
         W_bernoulli = self.W[0].reshape(1, self.K, self.K)
         W_poisson = self.W[1].reshape(1, self.K, self.K)
         W_gaussian = self.W[2].reshape(1, self.K, self.K)
@@ -195,6 +199,7 @@ class PIHAM(nn.Module):
         likelihood_weight: float = 1.0,
     ) -> float:
         """Compute the negative log posterior."""
+
         # Likelihood
         (
             Lambda_bernoulli,
@@ -294,6 +299,7 @@ class PIHAM(nn.Module):
         N_seeds: Number of realization, each with a different random initialization.
         print_likelihoods: Flag to print the likelihood for each seed.
         """
+
         # Initialize optimal parameters
         best_likelihood = -float("inf")
         best_likelihoods = []
@@ -399,6 +405,7 @@ class PIHAM(nn.Module):
 
     def save_results(self, folder_name: str, file_name: str) -> None:
         """Save the inferred parameters in a compressed file."""
+
         outfile = folder_name + "theta" + file_name
         np.savez_compressed(
             outfile + ".npz",
@@ -435,6 +442,7 @@ class PIHAM(nn.Module):
         likelihood_weight: float = 1.0,
     ) -> float:
         """Compute the log posterior distribution."""
+
         A_bernoulli = A[0]
         A_poisson = A[1]
         A_gaussian = A[2]
@@ -502,6 +510,7 @@ class PIHAM(nn.Module):
         likelihood_weight: float = 1.0,
     ) -> float:
         """Compute log posterior distribution for the Hessian."""
+
         # Restore original parameters
         U = Theta[0 : self.N * self.K].reshape(self.N, self.K)
         V = Theta[self.N * self.K : 2 * self.N * self.K].reshape(self.N, self.K)
@@ -512,7 +521,7 @@ class PIHAM(nn.Module):
             2 * self.N * self.K
             + self.L * self.K * self.K : 2 * self.N * self.K
             + self.L * self.K * self.K
-            + self.K * self.Z_categoricalå
+            + self.K * self.Z_categorical
         ].reshape(self.K, self.Z_categorical)
         Hpoisson = Theta[
             2 * self.N * self.K
@@ -571,6 +580,7 @@ class PIHAM(nn.Module):
         likelihood_weight: float = 1.0,
     ) -> None:
         """Compute the Hessian around the MAP estimates."""
+
         Theta = torch.cat(
             [
                 self.U.ravel(),
@@ -591,6 +601,7 @@ class PIHAM(nn.Module):
 
     def is_neg_Hessian_pos_def(self, eps=0.0) -> None:
         """Check if the negative Hessian is positive definite."""
+
         eigv = torch.linalg.eigvals(
             -self.Hessian - eps * torch.eye(self.Hessian.size(0)).to(self.device)
         )
@@ -606,6 +617,7 @@ class PIHAM(nn.Module):
 
     def compute_Covariance(self, eps: float = 1e-6, make_psd=False) -> None:
         """Compute the covariance matrix."""
+
         if make_psd:
             eigv = torch.linalg.eigvals(-self.Hessian)
             all_pos = (eigv.real >= 0).all()
@@ -618,13 +630,14 @@ class PIHAM(nn.Module):
 
     def get_Covariance(self, diagonal_only=False) -> Tensor:
         """Get the covariance matrix."""
+
         if diagonal_only:
             return self.Covariance.diag()
         else:
             return self.Covariance
 
 
-def assign_priors(N, L, K, Z_categorical, P_poisson, P_gaussian, configuration):
+def assign_priors(K, N, L, Z_categorical, P_poisson, P_gaussian, configuration):
     """Set parameters mu and sigma of prior distributions."""
 
     device = configuration["device"]

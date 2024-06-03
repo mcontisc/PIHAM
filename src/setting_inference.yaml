@@ -1,5 +1,6 @@
 rseed: 0
 device: 'cpu'
+# mu and sigma of prior normal distributions for the parameters
 U_mu: 0
 V_mu: 0
 W_mu: 0
@@ -24,6 +25,7 @@ W_init_std: 3
 Hcategorical_init_std: 3
 Hpoisson_init_std: 3
 Hgaussian_init_std: 3
+# hyperparameters for model optimization
 gamma: 0.1
 num_iter: 2000
 lik_weight: 1

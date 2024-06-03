@@ -113,8 +113,8 @@ class StandardPIHAM(BaseSyntheticNetwork):
         self.save_parameters()
         # Plot generated data
         if self.shoW_plots:
-            self._plot_A()
-            self._plot_X()
+            self.plot_A()
+            self.plot_X()
 
     def initialize(self, **kwargs):
         """Set parameters mu and sigma of the normal distributions for the parameters."""
@@ -326,6 +326,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
     def sample_affinity_tensor(self):
         """Generate the LxKxK affinity tensor (W)."""
+
         # Define mean for the normal distributions
         self.W_mean = torch.zeros((self.L, self.K, self.K)).float() + self.W_off
         self.W_mean = self.W_mean + self.W_bias * torch.eye(self.K).float()
@@ -343,6 +344,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
         """Generate latent variables representing community memberships and affinity tensor,
         assuming network layers are independent and communities are shared across layers.
         """
+
         # Generate U, V
         U, V = self.sample_membership_matrices()
         # Generate W
@@ -353,6 +355,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
         """Generate the community-covariate matrix H, explaining how an attribute
         x is distributed among the K communities.
         """
+
         # Generate Hcategorical - related to the Categorical attribute
         self.Hcategorical_mean = torch.zeros((self.K, self.Z_categorical))
         for k in range(min(self.K, self.Z_categorical)):
@@ -431,25 +434,30 @@ class StandardPIHAM(BaseSyntheticNetwork):
         print(f"True parameters saved in: {output_parameters}")
         print('To load: theta_gt=torch.load(filename), then e.g. theta_gt["U"]')
 
-    def _plot_A(self, cmap="PuBuGn"):
+    def plot_A(self, cmap="PuBuGn"):
         """Plot the generated adjacency tensor."""
 
+        labels = {
+            0: "$A_{ij}^{1} \in \{0, 1\}$",
+            1: "$A_{ij}^{2} \in \mathbb{N}_0$",
+            2: "$A_{ij}^{3} \in \mathbb{R}$",
+        }
         for layer in range(self.L):
             fig, ax = plt.subplots(figsize=(7, 7))
             ax.matshow(self.A[layer], cmap=plt.get_cmap(cmap))
-            ax.set_title(f"Adjacency matrix layer {layer}", fontsize=15)
+            ax.set_title(rf"{labels[layer]}", fontsize=15)
             for PCM in ax.get_children():
                 if isinstance(PCM, plt.cm.ScalarMappable):
                     break
             plt.colorbar(PCM, ax=ax)
             plt.show()
 
-    def _plot_X(self, cmap="PuBuGn"):
+    def plot_X(self, cmap="PuBuGn"):
         """Plot the generated design matrix."""
 
         fig, ax = plt.subplots(figsize=(7, 7))
         ax.matshow(self.X_categorical, cmap=plt.get_cmap(cmap), aspect="auto")
-        ax.set_title(f"Categorical attribute", fontsize=15)
+        ax.set_title(r"$X_{ix} \in \{0, 1\}$", fontsize=15)
         for PCM in ax.get_children():
             if isinstance(PCM, plt.cm.ScalarMappable):
                 break
@@ -458,7 +466,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
         fig, ax = plt.subplots(figsize=(7, 7))
         ax.matshow(self.X_poisson, cmap=plt.get_cmap(cmap), aspect="auto")
-        ax.set_title(f"Poisson attributes", fontsize=15)
+        ax.set_title(r"$X_{ix} \in \mathbb{N}_0$", fontsize=15)
         for PCM in ax.get_children():
             if isinstance(PCM, plt.cm.ScalarMappable):
                 break
@@ -467,7 +475,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
         fig, ax = plt.subplots(figsize=(7, 7))
         ax.matshow(self.X_gaussian, cmap=plt.get_cmap(cmap), aspect="auto")
-        ax.set_title(f"Gaussian attributes", fontsize=15)
+        ax.set_title(r"$X_{ix} \in \mathbb{R}$", fontsize=15)
         for PCM in ax.get_children():
             if isinstance(PCM, plt.cm.ScalarMappable):
                 break
