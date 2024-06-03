@@ -1,5 +1,4 @@
 """Functions used in the forward pass and helpers."""
-import math
 import numpy as np
 import torch
 from torch import Tensor
@@ -16,6 +15,7 @@ def row_wise_softmax(Y: Tensor) -> Tensor:
     """Compute the softmax function for every row of a 2D Tensor."""
 
     exp_Y = torch.exp(Y)
+
     return exp_Y / exp_Y.sum(1).reshape(-1, 1)
 
 
@@ -56,6 +56,7 @@ def calculate_permutation(u_reference: np.ndarray, u_permut: np.ndarray) -> np.n
         if (np.sum(P, axis=0) == 0).any():
             col = np.where(np.sum(P, axis=0) == 0)[0]
             P[row, col] = 1
+
     return P
 
 
@@ -88,7 +89,7 @@ def calculate_Overlap(mu: np.ndarray, std: np.ndarray) -> np.ndarray:
 
 def compute_L2barycenter(
     x: np.ndarray, mu: np.ndarray, std: np.ndarray
-) -> Tuple[np.ndarray, int, int]:
+) -> Tuple[np.ndarray, float, float]:
     """Compute the L2-barycenter distribution, which represents a weighted average
     of the node-community distributions. It also computes its mean and variance
     using the trapezoidal rule to approximate the integral.
@@ -149,7 +150,7 @@ def compute_alpha_from_normal(mu: np.ndarray, var: np.ndarray) -> np.ndarray:
     return alpha
 
 
-def draw_Dirichlet(dist, ax, border=True, nlevels=200) -> None:
+def draw_Dirichlet(dist, ax: plt.Axes, border: bool = True, nlevels: int = 200) -> None:
     """Functions for drawing contours of Dirichlet distributions over an equilateral triangle (2-simplex).
 
     source: https://gist.github.com/agitter/46b2169a035ad25b5d2b024a00344d54
@@ -234,7 +235,7 @@ def forward_poisson_layer(U: Tensor, V: Tensor, W: Tensor) -> Tensor:
 
 
 # Functions used in the forward pass of the design matrix
-def forward_categorical_covariate(U, V, H):
+def forward_categorical_covariate(U: Tensor, V: Tensor, H: Tensor) -> Tensor:
     """Compute expected values for categorical covariates."""
 
     U = row_wise_softmax(U)
@@ -246,7 +247,7 @@ def forward_categorical_covariate(U, V, H):
     return pi
 
 
-def forward_gaussian_covariate(U, V, H):
+def forward_gaussian_covariate(U: Tensor, V: Tensor, H: Tensor) -> Tensor:
     """Compute expected values for Gaussian covariates."""
 
     U = row_wise_softmax(U)
@@ -257,7 +258,7 @@ def forward_gaussian_covariate(U, V, H):
     return pi
 
 
-def forward_poisson_covariate(U, V, H):
+def forward_poisson_covariate(U: Tensor, V: Tensor, H: Tensor) -> Tensor:
     """Compute expected values for Poisson covariates."""
 
     U = row_wise_softmax(U)

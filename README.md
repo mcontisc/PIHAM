@@ -32,8 +32,7 @@ Contisciani M., Hobbhahn M., Power E.A., Hennig P., and De Bacco C. (2024)<br/>
         <a href="https://arxiv.org/abs/2405.20918" target="_blank">ArXiv</a>
 ]
 
-This code is made available for the public, and if you make use of it please cite our work 
-in the form of the reference [1] above.
+If you make use of this code please cite our work in the form of the reference [1] above.
 
 <h2> What's included </h2>
 
@@ -71,19 +70,19 @@ The data should be stored in a `.pt` file, , which includes:
 - `X_poisson`: A design matrix with the Poisson attributes
 - `X_gaussian`: A design matrix with the Gaussian attributes
 
-Here, `L` is the number of layers, `N` is the number of nodes, and `K` is the number of communities.
+Here, `L` is the number of layers and `N` is the number of nodes.
 
 The code example in this directory is suitable to analyze a network with `L = 3` layers (one with binary interactions, 
 the second with nonnegative discrete weights, and the third with real values) and three covariates (one categorical, 
 one with nonnegative discrete values, and the last with real values). However, the model can be easily adapted to accommodate datasets with other data types.
 
 ### Output
-The algorithm returns a compressed file inside the `data/output` folder. To load the inferred results and display the out-going membership matrix, run:
+The algorithm outputs a compressed file inside the `data/output` folder. To load the inferred results and display the out-going membership matrix, run:
 
 ```bash
 import numpy as np 
-theta = np.load('theta_<file_label>.npz')
-print(theta['U'])
+theta = np.load("theta_<file_label>.npz")
+print(theta["U"])
 ```
 
 The variable `theta` includes the following parameters inferred by PIHAM: 
@@ -97,14 +96,13 @@ The variable `theta` includes the following parameters inferred by PIHAM:
 - `Cov`: The covariance matrix
 - `Cov_diag`: The diagonal matrix of the variances
 
-Here, `Z_categorical` is the number of categories for the categorical attribute, `P_poisson` is the number of Poisson attributes, and `P_gaussian` is the number of Gaussian attributes.
+Here, `K` is the number of communities, `Z_categorical` is the number of categories for the categorical attribute, `P_poisson` is the number of Poisson attributes, and `P_gaussian` is the number of Gaussian attributes.
 
 <h2> Run a cross-validation routine </h2>
 
 If you are interested in assessing the prediction performance of PIHAM in a dataset for a given `K`, run:
 
 ```bash
-cd code
 python main_cv.py
 ```
 
@@ -128,13 +126,12 @@ The results are saved in a `.csv` file in the `data/output/cv` folder.
 If you want to generate synthetic data using the PIHAM approach, run:
 
 ```bash
-cd code
 python main_generation.py
 ```
 
 The script takes in input the number of independent samples to generate, a random seed, the number of communities `K`,
 and the number of nodes `N`. The code example generates a heterogeneous and attributed network with `L = 3` layers (one with binary interactions, 
 the second with nonnegative discrete weights, and the third with real values) and three covariates (one categorical, 
-one with nonnegative discrete values, and the last with real values). The network is created with the default parameters specified in the file `src/synthetic.py`.
-Note that, the script can be easily adapted to generate datasets with other data types and parameters.
+one with nonnegative discrete values, and the last with real values), using the default parameters specified in the file `src/synthetic.py`.
+However, the script can be easily adapted to generate datasets with other data types and parameters.
 

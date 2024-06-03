@@ -2,9 +2,11 @@ import os
 import math
 import numpy as np
 import torch
+from torch import Tensor
 import warnings
 from abc import ABCMeta
 import matplotlib.pyplot as plt
+from typing import List, Tuple, Optional, Any
 from src import tools
 
 # Default parameters
@@ -16,7 +18,8 @@ DEFAULT_P_poisson = 1  # number of Poisson attributes
 DEFAULT_P_gaussian = 1  # number of Gaussian attributes
 
 DEFAULT_UV_MEAN = 3.0  # mean of the normal distributions for the out-going and in-coming membership U and V
-DEFAULT_UV_BIAS = 1.0  # bias for the mean of the normal distributions for the out-going and in-coming membership U and V
+DEFAULT_UV_BIAS = 1.0  # bias for the mean of the normal distributions for the out-going and in-coming membership U
+# and V
 DEFAULT_U_STD = (
     0.2  # standard deviation of the normal distributions for the out-going membership U
 )
@@ -30,9 +33,12 @@ DEFAULT_W_BIAS = 4.0  # bias for the mean of the normal distributions for the di
 DEFAULT_W_STD = (
     0.45  # standard deviation of the normal distributions for the affinity tensor W
 )
-DEFAULT_Hcategorical_STD = 0.2  # standard deviation of the normal distributions for the community-covariate matrix Hcategorical, related to the categorical attribute.
-DEFAULT_Hpoisson_STD = 0.1  # standard deviation of the normal distributions for the community-covariate matrix Hpoisson, related to the Poisson attributes.
-DEFAULT_Hgaussian_STD = 0.2  # standard deviation of the normal distributions for the community-covariate matrix Hgaussian, related to the Gaussian attributes.
+DEFAULT_Hcategorical_STD = 0.2  # standard deviation of the normal distributions for the community-covariate matrix
+# Hcategorical, related to the categorical attribute.
+DEFAULT_Hpoisson_STD = 0.1  # standard deviation of the normal distributions for the community-covariate matrix
+# Hpoisson, related to the Poisson attributes.
+DEFAULT_Hgaussian_STD = 0.2  # standard deviation of the normal distributions for the community-covariate matrix
+# Hgaussian, related to the Gaussian attributes.
 
 DEFAULT_SEED = 10  # seed for the random number generator
 DEFAULT_OUT_FOLDER = "data/input/"  # output folder
@@ -57,7 +63,7 @@ class BaseSyntheticNetwork(metaclass=ABCMeta):
         out_folder: str = DEFAULT_OUT_FOLDER,
         shoW_plots: bool = DEFAULT_SHOW_PLOTS,
         **kwargs,
-    ):
+    ) -> None:
         self.K = K  # number of communities
         self.N = N  # number of nodes
         self.L = L  # number of layers
@@ -69,7 +75,7 @@ class BaseSyntheticNetwork(metaclass=ABCMeta):
 
         # Set seed random number generator
         self.seed = seed
-        self.prng = np.random.RandomState(self.seed)
+        torch.manual_seed(self.seed)
 
         self.out_folder = out_folder
         self.shoW_plots = shoW_plots
@@ -92,6 +98,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
     def __init__(self, **kwargs):
 
+        super().__init__(**kwargs)
         if "parameters_network" in kwargs:
             parameters_network = kwargs["parameters_network"]
         else:
@@ -116,7 +123,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
             self.plot_A()
             self.plot_X()
 
-    def initialize(self, **kwargs):
+    def initialize(self, **kwargs) -> None:
         """Set parameters mu and sigma of the normal distributions for the parameters."""
 
         super().__init__(**kwargs)
@@ -202,7 +209,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
             Hgaussian_std = DEFAULT_Hgaussian_STD
         self.Hgaussian_std = Hgaussian_std
 
-    def build_A(self, parameters_network=None):
+    def build_A(self, parameters_network: Optional[List[Tensor]] = None) -> None:
         """Generate the adjacency tensor using the latent variables."""
 
         """
@@ -214,11 +221,11 @@ class StandardPIHAM(BaseSyntheticNetwork):
         else:
             # Set latent variables associated to the network from input
             self.U, self.V, self.W = parameters_network
-            if self.U.shape != (self.N, self.K):
+            if self.U.size != (self.N, self.K):
                 raise ValueError("The shape of the parameter U has to be (N, K).")
-            if self.V.shape != (self.N, self.K):
+            if self.V.size != (self.N, self.K):
                 raise ValueError("The shape of the parameter V has to be (N, K).")
-            if self.W.shape != (self.L, self.K, self.K):
+            if self.W.size != (self.L, self.K, self.K):
                 raise ValueError("The shape of the parameter W has to be (L, K, K).")
 
         """
@@ -244,7 +251,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
             self.L, self.N, self.N
         )
 
-    def build_X(self, parameters_covariates=None):
+    def build_X(self, parameters_covariates: Optional[List[Tensor]] = None) -> None:
         """Generate the design matrix using the latent variables."""
 
         """
@@ -260,15 +267,15 @@ class StandardPIHAM(BaseSyntheticNetwork):
         else:
             # Set latent variables associated to the covariates from input
             self.Hcategorical, self.Hgaussian, self.Hpoisson = parameters_covariates
-            if self.Hcategorical.shape != (self.K, self.Z_categorical):
+            if self.Hcategorical.size != (self.K, self.Z_categorical):
                 raise ValueError(
                     "The shape of the parameter Hcategorical has to be (K, Z_categorical)."
                 )
-            if self.Hpoisson.shape != (self.K, self.P_poisson):
+            if self.Hpoisson.size != (self.K, self.P_poisson):
                 raise ValueError(
                     "The shape of the parameter Hpoisson has to be (K, P_poisson)."
                 )
-            if self.Hgaussian.shape != (self.K, self.P_gaussian):
+            if self.Hgaussian.size != (self.K, self.P_gaussian):
                 raise ValueError(
                     "The shape of the parameter Hgaussian has to be (K, P_gaussian)."
                 )
@@ -290,7 +297,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
         pi_gaussian = tools.forward_gaussian_covariate(self.U, self.V, self.Hgaussian)
         self.X_gaussian = torch.distributions.normal.Normal(pi_gaussian, 1).sample()
 
-    def sample_membership_matrices(self):
+    def sample_membership_matrices(self) -> Tuple[Tensor, Tensor]:
         """Generate the NxK out-going (U) and in-coming (V) membership matrices.
 
         To generate the membership matrices U and V , we assign equal-size group memberships
@@ -324,7 +331,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
         return U, V
 
-    def sample_affinity_tensor(self):
+    def sample_affinity_tensor(self) -> Tensor:
         """Generate the LxKxK affinity tensor (W)."""
 
         # Define mean for the normal distributions
@@ -340,7 +347,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
         return W
 
-    def generate_lv_mmsbm(self):
+    def generate_lv_mmsbm(self) -> Tuple[Tensor, Tensor, Tensor]:
         """Generate latent variables representing community memberships and affinity tensor,
         assuming network layers are independent and communities are shared across layers.
         """
@@ -349,9 +356,10 @@ class StandardPIHAM(BaseSyntheticNetwork):
         U, V = self.sample_membership_matrices()
         # Generate W
         W = self.sample_affinity_tensor()
+
         return U, V, W
 
-    def generate_lv_communitycovariate(self):
+    def generate_lv_communitycovariate(self) -> Tuple[Tensor, Tensor, Tensor]:
         """Generate the community-covariate matrix H, explaining how an attribute
         x is distributed among the K communities.
         """
@@ -394,7 +402,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
 
         return Hcategorical, Hpoisson, Hgaussian
 
-    def save_data(self):
+    def save_data(self) -> None:
         """Save generated data in a compressed file."""
 
         if not os.path.exists(self.out_folder):
@@ -412,7 +420,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
         print(f"Data saved in: {output_data}")
         print('To load: data=torch.load(filename), then e.g. data["A"]')
 
-    def save_parameters(self):
+    def save_parameters(self) -> None:
         """Save ground-truth parameters in a compressed file."""
 
         if not os.path.exists(self.out_folder):
@@ -434,7 +442,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
         print(f"True parameters saved in: {output_parameters}")
         print('To load: theta_gt=torch.load(filename), then e.g. theta_gt["U"]')
 
-    def plot_A(self, cmap="PuBuGn"):
+    def plot_A(self, cmap: Any = "PuBuGn") -> None:
         """Plot the generated adjacency tensor."""
 
         labels = {
@@ -452,7 +460,7 @@ class StandardPIHAM(BaseSyntheticNetwork):
             plt.colorbar(PCM, ax=ax)
             plt.show()
 
-    def plot_X(self, cmap="PuBuGn"):
+    def plot_X(self, cmap: Any = "PuBuGn") -> None:
         """Plot the generated design matrix."""
 
         fig, ax = plt.subplots(figsize=(7, 7))

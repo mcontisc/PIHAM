@@ -18,7 +18,7 @@ def main_generate_data():
     L = 3  # number of layers
 
     for _ in range(args.samples):
-        rseed += np.random.randint(1, 20)
+        rseed += np.random.randint(1, args.samples+1)
         synthetic.StandardPIHAM(K=args.K, N=args.N, L=L, seed=rseed)
 
 

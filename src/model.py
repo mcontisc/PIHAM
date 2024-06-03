@@ -181,6 +181,7 @@ class PIHAM(nn.Module):
         )
         pi_poisson = tools.forward_poisson_covariate(self.U, self.V, self.Hpoisson)
         pi_gaussian = tools.forward_gaussian_covariate(self.U, self.V, self.Hgaussian)
+
         return (
             Lambda_bernoulli,
             Lambda_poisson,
@@ -249,6 +250,7 @@ class PIHAM(nn.Module):
         norm_Hgaussian = torch.distributions.normal.Normal(
             self.Hgaussian_mu_prior, self.Hgaussian_std_prior
         ).log_prob(self.Hgaussian)
+
         return (
             -likelihood_weight
             * (
@@ -482,6 +484,7 @@ class PIHAM(nn.Module):
         norm_Hgaussian = torch.distributions.normal.Normal(
             self.Hgaussian_mu_prior, self.Hgaussian_std_prior
         ).log_prob(Hgaussian)
+
         return (
             likelihood_weight
             * (
@@ -569,6 +572,7 @@ class PIHAM(nn.Module):
             pi_gaussian,
             likelihood_weight,
         )
+
         return log_posterior
 
     def compute_Hessian(
@@ -613,6 +617,7 @@ class PIHAM(nn.Module):
 
     def get_Hessian(self) -> Tensor:
         """Get the Hessian matrix."""
+
         return self.Hessian
 
     def compute_Covariance(self, eps: float = 1e-6, make_psd: bool = False) -> None:

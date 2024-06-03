@@ -1,31 +1,45 @@
 """ Functions used in the cross-validation routine."""
 import pickle
 import numpy as np
+from torch import Tensor
 from sklearn import metrics
+from typing import List, Tuple, Optional, Union
 from src.model import PIHAM, assign_priors
 
 
-def shuffle_indicesA(N, L, rng):
+def shuffle_indicesA(N: int, L: int, rng: np.random.mtrand.RandomState) -> List:
     """Shuffle indices of adjacency tensor."""
 
     n_samples = int(N * N)
     idxG = [np.arange(n_samples) for _ in range(L)]
     for l in range(L):
         rng.shuffle(idxG[l])
+
     return idxG
 
 
-def shuffle_indicesX(N, rng):
+def shuffle_indicesX(N: int, rng: np.random.mtrand.RandomState) -> List:
     """Shuffle row indices of design matrix."""
 
     idxX = np.arange(N)
     rng.shuffle(idxX)
+
     return idxX
 
 
 def extract_masks(
-    N, L, idxA, idxX, cv_type, NFold, fold, rng, out_mask, output_folder, data_file
-):
+    N: int,
+    L: int,
+    idxA: List,
+    idxX: List,
+    cv_type: str,
+    NFold: int,
+    fold: int,
+    rng: np.random.mtrand.RandomState,
+    out_mask: bool,
+    output_folder: str,
+    data_file: str,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Extract masks to use during the cross-validation routine to hide entries of A and X."""
 
     if cv_type == "kfold":
@@ -60,7 +74,16 @@ def extract_masks(
     return maskA, maskX
 
 
-def fit_model(K, N, L, A, X_categorical, X_poisson, X_gaussian, **configuration):
+def fit_model(
+    K: int,
+    N: int,
+    L: int,
+    A: Tensor,
+    X_categorical: Tensor,
+    X_poisson: Tensor,
+    X_gaussian: Tensor,
+    **configuration,
+) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, PIHAM]:
     """Fit PIHAM model on the training set."""
 
     Z_categorical = X_categorical.size(
@@ -128,7 +151,7 @@ def fit_model(K, N, L, A, X_categorical, X_poisson, X_gaussian, **configuration)
     return U, V, W, Hcategorical, Hpoisson, Hgaussian, model
 
 
-def AUC(Y, Yhat, mask=None):
+def AUC(Y: np.ndarray, Yhat: np.ndarray, mask: Optional[np.ndarray] = None) -> float:
     """Compute the AUC score."""
 
     Y = (Y > 0).astype("int")
@@ -136,10 +159,13 @@ def AUC(Y, Yhat, mask=None):
         fpr, tpr, thresholds = metrics.roc_curve(Y.flatten(), Yhat.flatten())
     else:
         fpr, tpr, thresholds = metrics.roc_curve(Y[mask > 0], Yhat[mask > 0])
+
     return metrics.auc(fpr, tpr)
 
 
-def accuracy(Y, Yhat, mask=None):
+def accuracy(
+    Y: np.ndarray, Yhat: np.ndarray, mask: Optional[np.ndarray] = None
+) -> float:
     """Compute the accuracy score."""
 
     if mask is None:
@@ -149,10 +175,13 @@ def accuracy(Y, Yhat, mask=None):
         true_label = np.argmax(Y[mask > 0], axis=1)
         pred_label = np.argmax(Yhat[mask > 0], axis=1)
     acc = metrics.accuracy_score(true_label, pred_label)
+
     return acc
 
 
-def RMSE(Y, Yhat, mask=None):
+def RMSE(
+    Y: np.ndarray, Yhat: np.ndarray, mask: Optional[np.ndarray] = None
+) -> Union[float, List]:
     """Compute the root mean square error."""
 
     if mask is None:
@@ -170,10 +199,13 @@ def RMSE(Y, Yhat, mask=None):
             Yj = Y[:, j]
             Yhatj = Yhat[:, j]
             rmse.append(np.sqrt(np.mean((Yj - Yhatj) ** 2)))
+
     return rmse
 
 
-def MAE(Y, Yhat, mask=None):
+def MAE(
+    Y: np.ndarray, Yhat: np.ndarray, mask: Optional[np.ndarray] = None
+) -> Union[float, List]:
     """Compute the mean absolute error."""
 
     if mask is None:
@@ -191,4 +223,5 @@ def MAE(Y, Yhat, mask=None):
             Yj = Y[:, j]
             Yhatj = Yhat[:, j]
             mae.append(np.mean(np.abs(Yj - Yhatj)))
+
     return mae

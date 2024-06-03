@@ -130,7 +130,7 @@ def main():
     # Save results
     model.save_results(
         folder_name=output_folder,
-        file_name=f"_{args.data_file.replace('.pt', '')}_K{K}"
+        file_name=f"_{args.data_file.replace('.pt', '')}_K{K}",
     )
 
     toc = time.time()
