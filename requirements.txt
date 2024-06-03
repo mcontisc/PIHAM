@@ -3,3 +3,6 @@ torch
 functorch
 scikit-learn
 PyYAML
+scipy
+matplotlib
+POT

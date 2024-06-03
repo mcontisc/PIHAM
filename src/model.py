@@ -1,10 +1,10 @@
+import numpy as np
 import torch
-from typing import List, Tuple
 from torch import Tensor
 from torch import optim
 from torch import nn
 from torch.autograd.functional import hessian
-import numpy as np
+from typing import List, Tuple
 from src import tools
 
 
@@ -101,7 +101,7 @@ class PIHAM(nn.Module):
         self.device = configuration["device"]
         self.configuration = configuration
 
-    def initialize(self, seed) -> None:
+    def initialize(self, seed: int) -> None:
         """Initialize latent variables."""
 
         torch.manual_seed(seed)
@@ -599,7 +599,7 @@ class PIHAM(nn.Module):
         )
         self.Hessian = H
 
-    def is_neg_Hessian_pos_def(self, eps=0.0) -> None:
+    def is_neg_Hessian_pos_def(self, eps: float = 0.0) -> None:
         """Check if the negative Hessian is positive definite."""
 
         eigv = torch.linalg.eigvals(
@@ -615,7 +615,7 @@ class PIHAM(nn.Module):
         """Get the Hessian matrix."""
         return self.Hessian
 
-    def compute_Covariance(self, eps: float = 1e-6, make_psd=False) -> None:
+    def compute_Covariance(self, eps: float = 1e-6, make_psd: bool = False) -> None:
         """Compute the covariance matrix."""
 
         if make_psd:
@@ -628,7 +628,7 @@ class PIHAM(nn.Module):
             -self.Hessian - eps * torch.eye(self.Hessian.size(0)).to(self.device)
         )
 
-    def get_Covariance(self, diagonal_only=False) -> Tensor:
+    def get_Covariance(self, diagonal_only: bool = False) -> Tensor:
         """Get the covariance matrix."""
 
         if diagonal_only:
@@ -637,7 +637,28 @@ class PIHAM(nn.Module):
             return self.Covariance
 
 
-def assign_priors(K, N, L, Z_categorical, P_poisson, P_gaussian, configuration):
+def assign_priors(
+    K: int,
+    N: int,
+    L: int,
+    Z_categorical: int,
+    P_poisson: int,
+    P_gaussian: int,
+    configuration,
+) -> Tuple[
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+    Tensor,
+]:
     """Set parameters mu and sigma of prior distributions."""
 
     device = configuration["device"]
