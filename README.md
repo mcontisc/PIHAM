@@ -1,4 +1,4 @@
- d<h1 align="center">
+<h1 align="center">
 PIHAM <br/>  
 </h1>
 
@@ -43,7 +43,7 @@ If you make use of this code please cite our work in the form of the reference [
 <h2> Requirements </h2>
 
 In order to be able to run the code, you need to install the packages contained in `requirements.txt`. We suggest to create a conda environment with
-`conda create --name PIHAM python=3.8.9 --no-default-packages`, activate it with `conda activate PIHAM`, and install all the dependencies by running (inside the `PIHAM` directory):
+`conda create --name PIHAM python=3.8 --no-default-packages`, activate it with `conda activate PIHAM`, and install all the dependencies by running (inside the `PIHAM` directory):
 
 ```bash
 pip install -r requirements.txt
