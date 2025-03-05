@@ -26,8 +26,11 @@ This repository contains the implementation of the <i>PIHAM</i> model presented 
 &nbsp;&nbsp; 
 [1] <i> Flexible inference in heterogeneous and attributed multilayer networks</i><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-Contisciani M., Hobbhahn M., Power E.A., Hennig P., and De Bacco C. (2024)<br/>
+Contisciani M., Hobbhahn M., Power E.A., Hennig P., and De Bacco C. (2024), <i> PNAS Nexus 4 (1), pgaf005</i><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+[
+        <a href="https://academic.oup.com/pnasnexus/article/4/1/pgaf005/7950749" target="_blank">PNAS Nexus</a>
+]
 [
         <a href="https://arxiv.org/abs/2405.20918" target="_blank">ArXiv</a>
 ]
